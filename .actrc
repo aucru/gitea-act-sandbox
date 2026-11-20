@@ -1,0 +1,4 @@
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+--var-file workflows/.var.act
+--secret-file workflows/.secret.act
+--env-file workflows/.env.act
