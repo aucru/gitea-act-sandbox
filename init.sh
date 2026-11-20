@@ -9,7 +9,7 @@ echo "✅ Gitea 已就绪!"
 
 # 1. 在容器内创建初始管理员 (绕过 Web 安装界面)
 echo "🔐 创建 Gitea 初始管理员 (root)..."
-docker exec gitea gitea admin user create --admin --username root --password 123456 --email root@local.com --must-change-password=false
+docker exec gitea gitea admin user create --admin --username root --password 12345678 --email root@local.com --must-change-password=false
 
 # 2. 通过 API 获取管理员 Token
 echo "🔑 获取 API Token..."
