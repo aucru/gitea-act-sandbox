@@ -1,0 +1,76 @@
+services:
+  gitea:
+    image: docker.gitea.com/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    volumes:
+      - gitea-data:/data
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "22022:22"
+
+  zot-init:
+    image: httpd:alpine
+    container_name: zot-init
+    volumes:
+      - zot-config:/etc/zot
+    command: >
+      sh -c "
+      if [ ! -f /etc/zot/htpasswd ]; then
+        echo '🔐 正在预生成 Bcrypt 加密的 htpasswd 文件...';
+        htpasswd -bc -B /etc/zot/htpasswd admin 123456;
+      else
+        echo '✅ htpasswd 文件已存在，跳过生成。';
+      fi
+      "
+    restart: "no"
+
+  zot:
+    image: ghcr.io/project-zot/zot-linux-amd64:v2.1.14
+    container_name: zot-registry
+    ports:
+      - "5000:5000"
+    volumes:
+      - zot-data:/var/lib/zot
+      - zot-config:/etc/zot
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    configs:
+      - source: zot_config_json
+        target: /etc/zot/config.json
+    depends_on:
+      zot-init:
+        condition: service_completed_successfully
+    restart: always
+
+configs:
+  zot_config_json:
+    content: |
+      {
+        "distSpecVersion": "1.1.0",
+        "storage": {
+          "rootDirectory": "/var/lib/zot"
+        },
+        "http": {
+          "address": "0.0.0.0",
+          "port": "5000",
+          "realm": "zot",
+          "auth": {
+            "htpasswd": { "path": "/etc/zot/htpasswd" }
+          }
+        },
+        "extensions": {
+          "ui": { "enable": true },
+          "search": { "enable": true }
+        }
+      }
+
+volumes:
+  gitea-data:
+  zot-data:
+  zot-config:
