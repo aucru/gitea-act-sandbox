@@ -42,10 +42,11 @@ services:
       - /etc/localtime:/etc/localtime:ro
     configs:
       - source: zot_config_json
-        target: /etc/zot/config.json
+        target: /config.json
     depends_on:
       zot-init:
         condition: service_completed_successfully
+    command: ["serve", "/config.json"]
     restart: always
 
 configs:
@@ -62,6 +63,19 @@ configs:
           "realm": "zot",
           "auth": {
             "htpasswd": { "path": "/etc/zot/htpasswd" }
+          },
+          "accessControl": {
+            "repositories": {
+              "**": {
+                "policies": [
+                  {
+                    "users": ["admin"],
+                    "actions": ["read", "create", "update", "delete"]
+                  }
+                ],
+                "anonymousPolicy": []
+              }
+            }
           }
         },
         "extensions": {
